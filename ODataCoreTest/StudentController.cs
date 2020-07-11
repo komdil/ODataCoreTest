@@ -4,15 +4,15 @@ using Microsoft.AspNetCore.Mvc;
 using ODataCoreTest;
 using System;
 
-namespace ClassLibrary2
+namespace ODataCoreTest
 {
-    [Controller]
     public class StudentController : BaseController<Student>
     {
-        [ODataRoute("Student(Id={key})")]
-        public override IActionResult Get([FromODataUri] string key)
+        [HttpGet]
+        [ODataRoute("Test_GuidedChild(Id={id})")]
+        public override IActionResult Get([FromODataUri] string id)
         {
-            return Get("Id", key);
+            return Get("Id", id);
         }
     }
 }

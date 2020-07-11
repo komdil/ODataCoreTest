@@ -28,8 +28,8 @@ namespace ODataCoreTest
                  mvcOptions.EnableEndpointRouting = false).PartManager.ApplicationParts.Add(new AssemblyPart(modelAssembly));
             services.AddOData();
             services.AddRouting();
-
             services.AddMvc();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
