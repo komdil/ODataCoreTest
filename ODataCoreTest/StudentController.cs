@@ -8,11 +8,6 @@ namespace ODataCoreTest
 {
     public class StudentController : BaseController<Student>
     {
-        [HttpGet]
-        [ODataRoute("Test_GuidedChild(Id={id})")]
-        public override IActionResult Get([FromODataUri] string id)
-        {
-            return Get("Id", id);
-        }
+
     }
 }

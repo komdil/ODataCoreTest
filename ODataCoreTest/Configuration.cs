@@ -3,8 +3,13 @@ using Microsoft.AspNet.OData.Extensions;
 using Microsoft.AspNet.OData.Routing;
 using Microsoft.AspNet.OData.Routing.Conventions;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Http;
 using Microsoft.OData.Edm;
+using Newtonsoft.Json;
 using System;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace ODataCoreTest
 {
@@ -26,12 +31,15 @@ namespace ODataCoreTest
         {
             var app = appBuilder as IApplicationBuilder;
             var builder = new ODataConventionModelBuilder(app.ApplicationServices);
-            app.UseHttpsRedirection();
             app.UseRouting();
             app.UseAuthorization();
-            app.UseODataBatching();
+
+            app.UseExceptionHandler(errorApp =>
+            {
+                errorApp.Run(ODataExceptionHandler.HandleException());
+            });
+
             var edmModel = GetEdmModel(builder);
-            app.UseDeveloperExceptionPage();
             app.UseEndpoints(endpoints =>
             {
                 var pathHandler = new DefaultODataPathHandler();
@@ -52,8 +60,31 @@ namespace ODataCoreTest
         {
             builder.EntitySet<Student>("Student");
             builder.EntityType<Student>().HasKey(a => a.Id);
-            builder.Action("Get").ReturnsFromEntitySet<Student>("Student").Parameter<string>("Id");
+
             return builder.GetEdmModel();
+        }
+    }
+
+    public class ODataExceptionHandler
+    {
+        public static RequestDelegate HandleException()
+        {
+            return async context =>
+            {
+                await Handle(context);
+            };
+        }
+
+        public static Task Handle(HttpContext context)
+        {
+            return Task.Run(new Action(() =>
+            {
+                context.Response.ContentType = "application/problem+json";
+                var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
+                var content = JsonConvert.SerializeObject(exceptionHandlerPathFeature);
+                byte[] byteArray = Encoding.ASCII.GetBytes(content);
+                context.Response.Body.Write(byteArray);
+            }));
         }
     }
 }
