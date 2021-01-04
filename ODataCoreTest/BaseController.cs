@@ -1,58 +1,45 @@
 ﻿using Microsoft.AspNet.OData;
 using Microsoft.AspNet.OData.Query;
+using Microsoft.AspNet.OData.Routing;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Threading;
 
 namespace ODataCoreTest
 {
+    [ExtendedEnableQuery]
     public class BaseController<TEntity> : ODataController where TEntity : class
     {
         [HttpGet]
-        [EnableQuery()]
         public IActionResult Get(ODataQueryOptions<TEntity> queryOptions, CancellationToken cancellationToken)
         {
-            var list = new List<Student>
+
+           // queryOptions.Filter.Validate(new ODataValidationSettings());
+            var list = new List<EntityBase>
             {
-                CreateNewStudent("Cody Allen", 130),
-                CreateNewStudent("Todd Ostermeier", 160),
-                CreateNewStudent("Viral Pandya", 140)
-            };
+                CreateNewStudent(),
+            }.AsQueryable();
+
             return Ok(list);
         }
 
-        private static Student CreateNewStudent(string name, int score)
+        static Student CreateNewStudent()
         {
             return new Student
             {
                 Id = Guid.NewGuid(),
-                Name = name,
-                Score = score
+                Backpacks = new List<IBackpack>
+                {
+                    new Backpack{Name="Backpack",Address=new Address(){ PlaceNumber=342} },
+                    new Backpack{Name="Backpack",Address=new Address(){ PlaceNumber=123} },
+                    new Backpack{Name="Backpack",Address=new Address(){ PlaceNumber=987} },
+                }
             };
-        }
-
-        protected IActionResult Get(string propertyName, string key)
-        {
-            var list = new List<Student>
-            {
-                CreateNewStudent("Cody Allen", 130),
-                CreateNewStudent("Todd Ostermeier", 160),
-                CreateNewStudent("Viral Pandya", 140)
-            };
-            return Ok(list);
-        }
-
-        public virtual IActionResult Get(string key) => GetEntity(key);
-
-        IActionResult GetEntity(string key)
-        {
-            var list = new List<Student>
-            {
-                CreateNewStudent("Todd Ostermeier", 160),
-                CreateNewStudent("Viral Pandya", 140)
-            };
-            return Ok(list);
         }
     }
 }
