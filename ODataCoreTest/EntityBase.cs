@@ -18,9 +18,9 @@ namespace ODataCoreTest
         }
 
 
-        ODataDictionary odataInteraces;
+        ODataInterfacesDictionary odataInteraces;
 
-        public virtual ODataDictionary ODataInterfaces
+        public virtual ODataInterfacesDictionary ODataInterfaces
         {
             get
             {
@@ -28,7 +28,8 @@ namespace ODataCoreTest
                 {
                     var interfaces = new Dictionary<string, object>();
                     interfaces.Add("Backpack2", Backpack2);
-                    odataInteraces = new ODataDictionary(interfaces);
+                    interfaces.Add("Backpack3", null);
+                    odataInteraces = new ODataInterfacesDictionary(interfaces);
                 }
                 return odataInteraces;
             }

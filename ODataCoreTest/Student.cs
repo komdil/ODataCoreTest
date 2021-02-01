@@ -25,8 +25,26 @@ namespace ODataCoreTest
             }
         }
 
-      
+        public Backpack CooBackpack
+        {
+            get
+            {
+                return new Backpack() { Id = Guid.NewGuid(), Name = "test" };
+            }
+            set
+            {
+
+            }
+        }
+
+
         public List<IBackpack> Backpacks { get; set; } = new List<IBackpack>();
+
+
+        public class RunEntity
+        {
+            public Student Student { get; set; }
+        }
     }
 
     public class Backpack : IBackpack
@@ -37,6 +55,22 @@ namespace ODataCoreTest
 
         public Address Address { get; set; }
         public string Name { get; set; }
+
+        ODataInterfacesDictionary odataInteraces;
+        public virtual ODataInterfacesDictionary ODataInterfaces
+        {
+            get
+            {
+                if (odataInteraces == null)
+                {
+                    var interfaces = new Dictionary<string, object>();
+                    interfaces.Add("Backpack2", Address);
+                    interfaces.Add("Backpack3", null);
+                    odataInteraces = new ODataInterfacesDictionary(interfaces);
+                }
+                return odataInteraces;
+            }
+        }
     }
 
     public class Address

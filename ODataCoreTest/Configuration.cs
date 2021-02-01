@@ -3,31 +3,18 @@ using Microsoft.AspNet.OData.Builder;
 using Microsoft.AspNet.OData.Extensions;
 using Microsoft.AspNet.OData.Formatter.Deserialization;
 using Microsoft.AspNet.OData.Formatter.Serialization;
-using Microsoft.AspNet.OData.Query;
 using Microsoft.AspNet.OData.Routing;
 using Microsoft.AspNet.OData.Routing.Conventions;
-using Microsoft.AspNet.OData.Routing.Template;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Controllers;
-using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.OData;
 using Microsoft.OData.Edm;
-using Microsoft.OData.UriParser;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
-using System.Net.Http.Headers;
-using System.Runtime.Serialization;
-using System.Security.Policy;
-using System.Text;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace ODataCoreTest
 {
@@ -47,11 +34,9 @@ namespace ODataCoreTest
 
         public static void Configure(object appBuilder)
         {
-
             var app = appBuilder as IApplicationBuilder;
             app.UseDeveloperExceptionPage();
             var builder = new ODataConventionModelBuilder(app.ApplicationServices);
-
             app.UseRouting();
             app.UseAuthorization();
             var edmModel = GetEdmModel(builder);
@@ -67,15 +52,18 @@ namespace ODataCoreTest
 
                 routeBuilder.MapODataServiceRoute("OData", "OData", configureAction =>
                 {
-                    configureAction.AddService<ODataQueryOptionParser>(ServiceLifetime.Singleton, s => new CustomODataUriResolver(edmModel));
+                    Func<IServiceProvider, IEnumerable<IODataRoutingConvention>> magicFunc = ((IServiceProvider sp) => ODataRoutingConventions.CreateDefaultWithAttributeRouting("OData", routeBuilder.ServiceProvider));
+
+                    // configureAction.AddService<ODataQueryOptionParser>(ServiceLifetime.Singleton, s => new CustomODataUriResolver(edmModel));
                     configureAction.AddService(ServiceLifetime.Singleton, sp => edmModel);
+                    configureAction.AddService(ServiceLifetime.Singleton, magicFunc);
                     // var customRoutingConvention = new ODataCustomRoutingConvention();
                     var conventions = ODataRoutingConventions.CreateDefault();
                     //Workaround for https://github.com/OData/WebApi/issues/1622
-                    conventions.Insert(0, new AttributeRoutingConvention("OData", app.ApplicationServices, new MyClass2()));
+                    // conventions.Insert(0, new AttributeRoutingConvention("OData", app.ApplicationServices, new MyClass2()));
                     //Custom Convention
                     // conventions.Insert(0, customRoutingConvention);
-                    conventions.Insert(0, new CustomPropertyRoutingConvention2());
+                    //  conventions.Insert(0, new CustomPropertyRoutingConvention2());
                     configureAction.AddService<IEnumerable<IODataRoutingConvention>>(ServiceLifetime.Singleton, sp => conventions);
 
                     configureAction.AddService<ODataActionPayloadDeserializer>(ServiceLifetime.Singleton);
@@ -90,6 +78,7 @@ namespace ODataCoreTest
         {
             builder.EntityType<IEntity>().Abstract().HasKey(s => s.Id);
             builder.EntityType<EntityBase>().Ignore(s => s.Backpack2);
+            //builder.EntityType<ODataCommandResponse>();
             var entity = builder.EntityType<Student>().DerivesFrom<EntityBase>();
             //entity.Ignore(d => d.ODataInterfaces);
             entity.HasDynamicProperties(d => d.ODataInterfaces);
@@ -101,47 +90,9 @@ namespace ODataCoreTest
             // builder.ComplexType<IBackpack>();
             builder.EntityType<ODataBaseInterface>();
             builder.EntitySet<Student>("Student");
+            builder.EntitySet<Backpack>("Backpack");
             var model = builder.GetEdmModel();
             return model;
-        }
-    }
-
-    public class CustomPropertyRoutingConvention2 : NavigationSourceRoutingConvention
-    {
-        public override string SelectAction(RouteContext routeContext, SelectControllerResult controllerResult, IEnumerable<ControllerActionDescriptor> actionDescriptors)
-        {
-            return "Get";
-        }
-    }
-
-    public class MyClass2 : DefaultODataPathHandler
-    {
-        public MyClass2()
-        {
-
-        }
-
-        public override string Link(Microsoft.AspNet.OData.Routing.ODataPath path)
-        {
-            return base.Link(path);
-        }
-
-        public override Microsoft.AspNet.OData.Routing.ODataPath Parse(string serviceRoot, string odataPath, IServiceProvider requestContainer)
-        {
-            return base.Parse(serviceRoot, odataPath, requestContainer);
-        }
-
-        public override ODataPathTemplate ParseTemplate(string odataPathTemplate, IServiceProvider requestContainer)
-        {
-            return base.ParseTemplate(odataPathTemplate, requestContainer);
-        }
-    }
-
-    public class CustomODataUriResolver : ODataQueryOptionParser
-    {
-        public CustomODataUriResolver(IEdmModel edmModel) : base(edmModel, null, null)
-        {
-
         }
     }
 
@@ -167,37 +118,21 @@ namespace ODataCoreTest
     {
         private CustomODataResourceSerializer resuoruceSerializer;
 
-
+        private EagleODataDecimalSerializer presuoruceSerializer;
         public CustomODataSerializerProvider(IServiceProvider serviceProvider) : base(serviceProvider)
         {
             resuoruceSerializer = new CustomODataResourceSerializer(this);
+            presuoruceSerializer = new EagleODataDecimalSerializer();
         }
 
         public override ODataEdmTypeSerializer GetEdmTypeSerializer(IEdmTypeReference edmType)
         {
-            if (edmType.IsEntity())
+            if (edmType.IsPrimitive())
             {
-                return resuoruceSerializer;
+                return presuoruceSerializer;
             }
-            return base.GetEdmTypeSerializer(edmType);
-        }
-    }
-    public class ExpandedNavigationSelectedItemTranslator : SelectItemTranslator<IEnumerable<string>>
-    {
-        public override IEnumerable<string> Translate(ExpandedNavigationSelectItem item)
-        {
-            var expandedNavigationProperies = new List<string>();
-            expandedNavigationProperies.Add(item.PathToNavigationProperty.Cast<NavigationPropertySegment>().Single().NavigationProperty.Name);
-            if (item.SelectAndExpand.SelectedItems.Any())
-            {
-                expandedNavigationProperies.AddRange(TranslateSelectExpandClause(item.SelectAndExpand).Select(p => item.PathToNavigationProperty.Cast<NavigationPropertySegment>().Single().NavigationProperty.Name + "." + p));
-            }
-            return expandedNavigationProperies;
-        }
 
-        public IEnumerable<string> TranslateSelectExpandClause(SelectExpandClause selectExpandClause)
-        {
-            return selectExpandClause.SelectedItems.OfType<ExpandedNavigationSelectItem>().SelectMany(Translate);
+            return base.GetEdmTypeSerializer(edmType);
         }
     }
 
@@ -208,36 +143,22 @@ namespace ODataCoreTest
 
         }
 
-        /// <summary>
-        /// Creating resource for entity with selected interface type property
-        /// </summary>
         public override ODataResource CreateResource(SelectExpandNode selectExpandNode, ResourceContext resourceContext)
         {
             var resource = base.CreateResource(selectExpandNode, resourceContext);
 
-            //if (selectExpandNode.SelectedDynamicProperties?.Any() == true)
-            //{
-            //    foreach (var dynamicProperty in selectExpandNode.SelectedDynamicProperties)
-            //    {
-            //        if (!resource.Properties.Any(s => s.Name == dynamicProperty))
-            //        {
-            //            throw new InvalidOperationException($"Cannot find property '{dynamicProperty}' on '{resource.TypeName}' entity");
-            //        }
-            //    }
-            //}
+            if (selectExpandNode.SelectedDynamicProperties?.Any() == true)
+            {
+                foreach (var dynamicProperty in selectExpandNode.SelectedDynamicProperties)
+                {
+                    if (!resource.Properties.Any(s => s.Name == dynamicProperty) && resourceContext.DynamicComplexProperties?.Any(s => s.Key == dynamicProperty) != true)
+                    {
+                        throw new InvalidOperationException($"Cannot find property '{dynamicProperty}' on '{resource.TypeName}' entity");
+                    }
+                }
+            }
 
             return resource;
-        }
-
-        public override ODataAction CreateODataAction(IEdmAction action, ResourceContext resourceContext)
-        {
-            return base.CreateODataAction(action, resourceContext);
-        }
-
-        public override SelectExpandNode CreateSelectExpandNode(ResourceContext resourceContext)
-        {
-            var expand = base.CreateSelectExpandNode(resourceContext);
-            return expand;
         }
 
         public override void AppendDynamicProperties(ODataResource resource, SelectExpandNode selectExpandNode, ResourceContext resourceContext)
@@ -249,198 +170,65 @@ namespace ODataCoreTest
         }
     }
 
-    public class MyReference : EdmEntityReferenceType, IEdmTypeReference
+    public class ODataInterfacesDictionary : IDictionary<string, object>
     {
-        public MyReference(IEdmEntityType edmEntityType) : base(edmEntityType)
-        {
-
-        }
-
-        public bool IsNullable => true;
-
-        public IEdmType Definition => throw new NotImplementedException();
-    }
-
-    public class AnnotatingEntitySerializer : ODataPrimitiveSerializer
-    {
-        public override ODataPrimitiveValue CreateODataPrimitiveValue(object graph, IEdmPrimitiveTypeReference primitiveType, ODataSerializerContext writeContext)
-        {
-            return base.CreateODataPrimitiveValue(graph, primitiveType, writeContext);
-        }
-    }
-
-    public class Property : IEdmProperty
-    {
-        public Property(IEdmProperty originalProperty, MyClass edmTypeReference)
-        {
-            PropertyKind = originalProperty.PropertyKind;
-            DeclaringType = originalProperty.DeclaringType;
-            Name = originalProperty.Name;
-            Type = edmTypeReference;
-        }
-
-        public EdmPropertyKind PropertyKind { get; set; }
-        public IEdmStructuredType DeclaringType { get; set; }
-        public string Name { get; set; }
-        public IEdmTypeReference Type { get; set; }
-    }
-
-    class Writer : ODataWriter
-    {
-        public override void Flush()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task FlushAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void WriteEnd()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task WriteEndAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void WriteEntityReferenceLink(ODataEntityReferenceLink entityReferenceLink)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task WriteEntityReferenceLinkAsync(ODataEntityReferenceLink entityReferenceLink)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void WriteStart(ODataResourceSet resourceSet)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void WriteStart(ODataResource resource)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void WriteStart(ODataNestedResourceInfo nestedResourceInfo)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task WriteStartAsync(ODataResourceSet resourceSet)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task WriteStartAsync(ODataResource resource)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task WriteStartAsync(ODataNestedResourceInfo nestedResourceInfo)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public class MyClass : EdmTypeReference
-    {
-        public MyClass(IEdmType edmType, bool isNullable) : base(edmType, isNullable)
-        {
-
-        }
-    }
-    public class ODataExceptionHandler
-    {
-        public const string UnhundledExceptionId = "UnhandledException";
-
-        public static RequestDelegate HandleException() => async context => await HandleAsync(context);
-
-        public static async Task HandleAsync(HttpContext context)
-        {
-            await HandleErrorResponseAsync(context.Response, context.Features.Get<IExceptionHandlerPathFeature>()?.Error);
-        }
-
-        public static async Task HandleErrorResponseAsync(HttpResponse response, Exception ex)
-        {
-            await HandleErrorResponseAsync(response, ex.Message);
-        }
-
-        public static async Task HandleErrorResponseAsync(HttpResponse response, string errors)
-        {
-            response.ContentType = "application/problem+json";
-            byte[] byteArray = Encoding.ASCII.GetBytes(errors);
-            await response.Body.WriteAsync(byteArray);
-        }
-    }
-
-    public class ExtendedEnableQueryAttribute : EnableQueryAttribute
-    {
-        public override void ValidateQuery(HttpRequest request, ODataQueryOptions queryOptions)
-        {
-            base.ValidateQuery(request, queryOptions);
-        }
-
-        public override IQueryable ApplyQuery(IQueryable queryable, ODataQueryOptions queryOptions)
-        {
-            //return queryable;
-            return base.ApplyQuery(queryable, queryOptions);
-        }
-        public override object ApplyQuery(object entity, ODataQueryOptions queryOptions)
-        {
-            return base.ApplyQuery(entity, queryOptions);
-        }
-
-
-        public override bool Match(object obj)
-        {
-            return base.Match(obj);
-        }
-
-        public override void OnActionExecuting(ActionExecutingContext context)
-        {
-            base.OnActionExecuting(context);
-        }
-    }
-
-    public class ODataDictionary : IDictionary<string, object>
-    {
-        public Dictionary<string, object> SourceDictionary { get; set; }
-
-        public ODataDictionary(Dictionary<string, object> keyValuePairs)
-        {
-            SourceDictionary = keyValuePairs;
-        }
-
-        public object this[string key]
-        {
-            get
-            {
-                var value = SourceDictionary[key];
-                return value;
-            }
-            set
-            {
-                SourceDictionary[key] = value;
-            }
-        }
-
-        public ICollection<string> Keys => SourceDictionary.Keys;
-
-        public ICollection<object> Values => SourceDictionary.Values;
+        public Dictionary<string, object> SourceDictionary { get; }
 
         public int Count => SourceDictionary.Count;
 
+        ICollection<string> IDictionary<string, object>.Keys => SourceDictionary.Keys;
+
+        ICollection<object> IDictionary<string, object>.Values => SourceDictionary.Values;
+
         public bool IsReadOnly => false;
+
+        object IDictionary<string, object>.this[string key] { get => SourceDictionary[key]; set => SourceDictionary[key] = value; }
+
+        public object this[string key] => SourceDictionary[key];
+
+        public ODataInterfacesDictionary(Dictionary<string, object> source)
+        {
+            SourceDictionary = source;
+        }
+
+        public bool ContainsKey(string key)
+        {
+            return SourceDictionary.ContainsKey(key);
+        }
+
+        public bool TryGetValue(string key, [MaybeNullWhen(false)] out object value)
+        {
+            return SourceDictionary.TryGetValue(key, out value);
+        }
+
+        public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
+        {
+            foreach (var item in SourceDictionary)
+            {
+                if (item.Value == null)
+                {
+                    yield return new KeyValuePair<string, object>(item.Key, string.Empty);
+                }
+                else
+                {
+                    yield return item;
+                }
+            }
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
 
         public void Add(string key, object value)
         {
             SourceDictionary.Add(key, value);
+        }
+
+        public bool Remove(string key)
+        {
+            return SourceDictionary.Remove(key);
         }
 
         public void Add(KeyValuePair<string, object> item)
@@ -458,42 +246,90 @@ namespace ODataCoreTest
             return SourceDictionary.Contains(item);
         }
 
-        public bool ContainsKey(string key)
-        {
-            return SourceDictionary.ContainsKey(key);
-        }
-
         public void CopyTo(KeyValuePair<string, object>[] array, int arrayIndex)
         {
-
-        }
-
-        public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
-        {
-            var enumerator = SourceDictionary.GetEnumerator();
-            return enumerator;
-        }
-
-        public bool Remove(string key)
-        {
-            return SourceDictionary.Remove(key);
+            throw new NotImplementedException();
         }
 
         public bool Remove(KeyValuePair<string, object> item)
         {
             return SourceDictionary.Remove(item.Key);
         }
+    }
 
-        public bool TryGetValue(string key, [MaybeNullWhen(false)] out object value)
+    public class EagleODataDecimalSerializer : ODataPrimitiveSerializer
+    {
+        /// <summary>
+        /// Rewriting decimal value
+        /// </summary>
+        public override ODataPrimitiveValue CreateODataPrimitiveValue(object graph, IEdmPrimitiveTypeReference primitiveType, ODataSerializerContext writeContext)
         {
-            return SourceDictionary.TryGetValue(key, out value);
+            if (graph is decimal decimalValue && primitiveType is EdmDecimalTypeReference decimalTypeReference && decimalTypeReference.Scale != null)
+            {
+                graph = CalculateDecimalPrecision(decimalValue, decimalTypeReference.Scale.Value);
+            }
+            else if (graph is string)
+            {
+
+            }
+            return base.CreateODataPrimitiveValue(graph, primitiveType, writeContext);
         }
 
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        /// <summary>
+        /// Calculates precision of decimal value based on VisualDecimals
+        /// </summary>
+        decimal CalculateDecimalPrecision(decimal value, int precision)
         {
-            return SourceDictionary.GetEnumerator();
+            if (ShouldCalculatePrecision(value, precision, out bool shouldRound))
+            {
+                if (shouldRound)
+                {
+                    value = Math.Round(value, precision);
+                }
+                else
+                {
+                    var calculatedPrecision = decimal.Divide(1, Convert.ToDecimal(Math.Pow(10, precision)));
+                    var zeroAfterPoint = calculatedPrecision - calculatedPrecision;
+                    value += zeroAfterPoint;
+                }
+            }
+            return value;
+        }
+
+        /// <summary>
+        /// Returns true if decimal value should be calculated based on VisualDecimals
+        /// </summary>
+        /// <param name="shouldRound">It will be true when value precision higher then VisualDecimals</param>
+        bool ShouldCalculatePrecision(decimal value, int precision, out bool shouldRound)
+        {
+            shouldRound = false;
+            var splitedDecimalWithPoints = value.ToString().Split(".");
+            if (splitedDecimalWithPoints.Count() < 1 && precision > 1)
+            {
+                return true;
+            }
+            else if (splitedDecimalWithPoints.Last().Length < precision)
+            {
+                return true;
+            }
+            else if (splitedDecimalWithPoints.Last().Length > precision)
+            {
+                shouldRound = true;
+                return true;
+            }
+            return false;
         }
     }
 
+    public class MyClass : ODataEdmTypeSerializer
+    {
+        public MyClass(ODataPayloadKind payloadKind) : base(payloadKind)
+        {
+        }
 
+        public override ODataValue CreateODataValue(object graph, IEdmTypeReference expectedType, ODataSerializerContext writeContext)
+        {
+            return base.CreateODataValue(graph, expectedType, writeContext);
+        }
+    }
 }
