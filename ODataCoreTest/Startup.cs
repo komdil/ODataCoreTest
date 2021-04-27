@@ -1,13 +1,11 @@
-using Microsoft.AspNet.OData.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.ApplicationParts;
+using Microsoft.AspNetCore.OData;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OData.Edm;
-using Microsoft.OData.UriParser;
-using System.Reflection;
+using Microsoft.OData.ModelBuilder;
 
 namespace ODataCoreTest
 {
@@ -23,13 +21,27 @@ namespace ODataCoreTest
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            var modelAssembly = Assembly.LoadFrom(@"C:\Users\Owner\source\repos\ODataCoreTest\ClassLibrary2\bin\Debug\netcoreapp3.1\ClassLibrary2.dll");
             services.AddControllers(mvcOptions =>
-                 mvcOptions.EnableEndpointRouting = false).PartManager.ApplicationParts.Add(new AssemblyPart(modelAssembly));
-            services.AddOData();
-            services.AddRouting();
+                 mvcOptions.EnableEndpointRouting = false);
+            services.AddControllers();
+            services.AddOData(opt => opt.AddModel("OData", GetEdmModel()).Filter().Select().Expand());
+        }
 
-            services.AddMvc();
+        static IEdmModel GetEdmModel()
+        {
+            var odataBuilder = new ODataConventionModelBuilder();
+            odataBuilder.EntitySet<Student>("Student");
+            var entity = odataBuilder.EntityType<Student>();
+            entity.DerivesFrom<EntityBase>();
+            entity.Ignore(s => s.Test);
+            entity.Ignore(s => s.Test2);
+
+            var baseEntity = odataBuilder.EntityType<EntityBase>();
+            baseEntity.Abstract();
+            baseEntity.Ignore(s => s.Test);
+            baseEntity.Ignore(s => s.Test2);
+
+            return odataBuilder.GetEdmModel();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -39,10 +51,11 @@ namespace ODataCoreTest
             {
                 app.UseDeveloperExceptionPage();
             }
-            //app.UseEndpoints(endpoints =>
-            //{
-            //    endpoints.MapControllers().Add(a=>a.;
-            //});
+            app.UseHttpsRedirection();
+            app.UseRouting();
+            app.UseAuthorization();
+            app.UseODataBatching();
+            app.UseMvc(s => s.MapRoute("OData", "{controller}/{action}"));
         }
     }
 }
