@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Formatter;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.AspNetCore.OData.Routing.Controllers;
 using System;
@@ -9,30 +10,24 @@ using System.Threading.Tasks;
 
 namespace ODataCoreTest
 {
-    [EnableQuery]
-    public class StudentController : ODataController
+    public class StudentController : MyBaseController<Student>
     {
-        [HttpGet]
-        [EnableQuery()]
-        public IEnumerable<Student> Get(ODataQueryOptions queryOptions, CancellationToken cancellationToken)
+        [HttpDelete("Student/{key}")]
+        public IActionResult Delete(string key)
         {
-            var list = new List<Student>
-            {
-                CreateNewStudent("Cody Allen", 130),
-                CreateNewStudent("Todd Ostermeier", 160),
-                CreateNewStudent("Viral Pandya", 140)
-            };
-            return list;
+            return Ok($"Orders {key} from OData");
         }
 
-        private static Student CreateNewStudent(string name, int score)
+        [HttpGet("Student/{key}")]
+        public IActionResult Get2(string key)
         {
-            return new Student
-            {
-                Id = Guid.NewGuid(),
-                Name = name,
-                Score = score
-            };
+            return Ok($"Orders {key} from OData");
+        }
+
+        [HttpGet("Student({propName}={propValue})")]
+        public IActionResult Get(string propName, string propValue)
+        {
+            return Ok($"Orders {propName} from OData" + propValue);
         }
     }
 }

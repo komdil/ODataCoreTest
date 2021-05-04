@@ -1,11 +1,14 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.OData;
+using Microsoft.AspNetCore.OData.Batch;
+using Microsoft.AspNetCore.OData.Formatter.Serialization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OData.Edm;
 using Microsoft.OData.ModelBuilder;
+using Microsoft.OData.UriParser;
 
 namespace ODataCoreTest
 {
@@ -21,10 +24,21 @@ namespace ODataCoreTest
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers(mvcOptions =>
-                 mvcOptions.EnableEndpointRouting = false);
-            services.AddControllers();
-            services.AddOData(opt => opt.AddModel("OData", GetEdmModel()).Filter().Select().Expand());
+            services.AddControllers(op => op.AllowEmptyInputInBodyModelBinding = true);
+
+            var mvcBuilder = services.AddMvcCore();
+            var edmModel = GetEdmModel();
+
+            mvcBuilder.AddOData(opt =>
+            {
+                opt.AddModel("", edmModel, configureAction =>
+                {
+                    configureAction.AddService(Microsoft.OData.ServiceLifetime.Singleton, typeof(ODataUriResolver), s => new AlternateKeyPrefixFreeEnumODataUriResolver(edmModel));
+                    configureAction.AddService(Microsoft.OData.ServiceLifetime.Singleton, typeof(ODataBatchHandler), s => new EagleODataBatchHandler());
+                    configureAction.AddService(Microsoft.OData.ServiceLifetime.Singleton, typeof(ODataSerializerProvider), sp => new EagleODataSerializerProvider(sp));
+                });
+                opt.Filter().Select().Expand().SetMaxTop(null).Count().OrderBy();
+            });
         }
 
         static IEdmModel GetEdmModel()
@@ -35,6 +49,7 @@ namespace ODataCoreTest
             entity.DerivesFrom<EntityBase>();
             entity.Ignore(s => s.Test);
             entity.Ignore(s => s.Test2);
+            entity.HasKey(s => s.Id);
 
             var baseEntity = odataBuilder.EntityType<EntityBase>();
             baseEntity.Abstract();
@@ -55,7 +70,7 @@ namespace ODataCoreTest
             app.UseRouting();
             app.UseAuthorization();
             app.UseODataBatching();
-            app.UseMvc(s => s.MapRoute("OData", "{controller}/{action}"));
+            app.UseEndpoints(s => s.MapControllerRoute("OData", "[controller]/[action]"));
         }
     }
 }
