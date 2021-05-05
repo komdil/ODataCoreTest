@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
-using Microsoft.AspNetCore.OData.Routing.Attributes;
 using Microsoft.AspNetCore.OData.Routing.Controllers;
 using System;
 using System.Collections.Generic;
@@ -23,7 +22,12 @@ namespace ODataCoreTest
             return list;
         }
 
+<<<<<<< Updated upstream
         public IActionResult Get(Guid key)
+=======
+        [HttpGet("{contextToken}/[controller]/{key}")]
+        public IActionResult Get(string key)
+>>>>>>> Stashed changes
         {
             var student = CreateNewStudentWithGuid("Cody Allen", 130);
             return Ok(student);
@@ -62,6 +66,12 @@ namespace ODataCoreTest
         public IActionResult Delete(Guid key, string propName, string propValue)
         {
             return Ok($"Orders {key} from OData");
+        }
+
+        [HttpPost("[controller]/{key}/Model.Entities.{commandName}")]
+        public IActionResult ExecuteCommand(string commandName, string key, [FromBody] object parameters)
+        {
+            return Ok();
         }
     }
 }
