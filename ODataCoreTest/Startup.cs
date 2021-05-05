@@ -34,8 +34,8 @@ namespace ODataCoreTest
             {
                 opt.AddModel("", edmModel, configureAction =>
                 {
-                    configureAction.AddService(Microsoft.OData.ServiceLifetime.Singleton, typeof(ODataBatchHandler), s => new EagleODataBatchHandler());
-                    configureAction.AddService(Microsoft.OData.ServiceLifetime.Singleton, typeof(ODataSerializerProvider), sp => new EagleODataSerializerProvider(sp));
+                    configureAction.AddService(Microsoft.OData.ServiceLifetime.Singleton, typeof(ODataBatchHandler), s => new MyODataBatchHandler());
+                    configureAction.AddService(Microsoft.OData.ServiceLifetime.Singleton, typeof(ODataSerializerProvider), sp => new MyODataSerializerProvider(sp));
                 });
                 opt.Filter().Select().Expand().SetMaxTop(null).Count().OrderBy();
             });
@@ -45,16 +45,48 @@ namespace ODataCoreTest
         {
             var odataBuilder = new ODataConventionModelBuilder();
             odataBuilder.EntitySet<Student>("Student");
-            var entity = odataBuilder.EntityType<Student>();
-            entity.DerivesFrom<EntityBase>();
-            entity.Ignore(s => s.Test);
-            entity.Ignore(s => s.Test2);
-            entity.HasKey(s => s.Id);
+            odataBuilder.EntitySet<Student1>("Student1");
+            odataBuilder.EntitySet<Student2>("Student2");
+            odataBuilder.EntitySet<Student3>("Student3");
+            odataBuilder.EntitySet<Student4>("Student4");
+            odataBuilder.EntitySet<Student5>("Student5");
+            odataBuilder.EntitySet<Student6>("Student6");
+            odataBuilder.EntitySet<Student7>("Student7");
+            odataBuilder.EntitySet<Student8>("Student8");
+            odataBuilder.EntitySet<Student9>("Student9");
+            odataBuilder.EntitySet<Student10>("Student10");
+            odataBuilder.EntitySet<Student11>("Student11");
+            odataBuilder.EntitySet<Student12>("Student12");
+            odataBuilder.EntitySet<Student13>("Student13");
+            odataBuilder.EntitySet<Student14>("Student14");
+            odataBuilder.EntitySet<Student15>("Student15");
+            odataBuilder.EntitySet<Student16>("Student16");
+            odataBuilder.EntitySet<Student17>("Student17");
+            odataBuilder.EntitySet<Student18>("Student18");
+            odataBuilder.EntitySet<Student19>("Student19");
+            odataBuilder.EntitySet<Student20>("Student20");
 
-            var baseEntity = odataBuilder.EntityType<EntityBase>();
-            baseEntity.Abstract();
-            baseEntity.Ignore(s => s.Test);
-            baseEntity.Ignore(s => s.Test2);
+            odataBuilder.EntityType<Student>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student1>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student2>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student3>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student4>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student5>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student6>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student7>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student8>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student9>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student10>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student11>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student12>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student13>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student14>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student15>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student16>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student17>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student18>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student19>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student20>().HasKey(s => s.Id);
 
             return odataBuilder.GetEdmModel();
         }
@@ -74,6 +106,7 @@ namespace ODataCoreTest
             builder.UseEndpoints(routeBuilder =>
             {
                 routeBuilder.MapControllerRoute("OData", "[controller]/[action]");
+                routeBuilder.MapControllerRoute("ODataWithContext", "{contextToken}/[controller]/[action]");
             });
         }
     }
