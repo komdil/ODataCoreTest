@@ -33,7 +33,7 @@ namespace ODataCoreTest
             mvcBuilder.AddOData(opt =>
             {
                 opt.EnableContinueOnErrorHeader = true;
-                opt.AddModel("", edmModel, configureAction =>
+                opt.AddModel("{contextToken}", edmModel, configureAction =>
                 {
                     configureAction.AddService(Microsoft.OData.ServiceLifetime.Singleton, typeof(ODataBatchHandler), s => new MyODataBatchHandler());
                     configureAction.AddService(Microsoft.OData.ServiceLifetime.Singleton, typeof(ODataSerializerProvider), sp => new MyODataSerializerProvider(sp));
@@ -89,14 +89,15 @@ namespace ODataCoreTest
             {
                 builder.UseDeveloperExceptionPage();
             }
+            builder.UseODataRouteDebug();
             builder.UseODataBatching();
             builder.UseHttpsRedirection();
             builder.UseRouting();
             builder.UseAuthentication();
             builder.UseAuthorization();
-            builder.UseMvc(routeBuilder =>
+            builder.UseEndpoints(routeBuilder =>
             {
-                routeBuilder.MapRoute("OData", "[controller]/[action]");
+                routeBuilder.MapControllerRoute("OData", "[controller]/[action]");
             });
         }
     }

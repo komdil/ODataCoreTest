@@ -10,8 +10,8 @@ namespace ODataCoreTest
     [EnableQuery(MaxExpansionDepth = 0, EnsureStableOrdering = false)]
     public abstract class MyBaseController<TEntity> : ODataController where TEntity : Student
     {
-        [HttpGet("/{contextToken}/[controller]")]
-        public IActionResult Get(ODataQueryOptions queryOptions, CancellationToken cancellationToken)
+        [HttpGet("[controller]")]
+        public IActionResult Get(ODataQueryOptions<TEntity> queryOptions, CancellationToken cancellationToken)
         {
             var list = new List<Student>
             {
@@ -22,8 +22,7 @@ namespace ODataCoreTest
             return Ok(list);
         }
 
-
-        [HttpGet("{contextToken}/[controller]/{key}")]
+        [HttpGet("[controller]/{key}")]
         public IActionResult Get(string key)
         {
             var student = CreateNewStudentWithGuid("Cody Allen", 130);
