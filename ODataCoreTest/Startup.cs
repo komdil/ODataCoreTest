@@ -35,15 +35,10 @@ namespace ODataCoreTest
             {
                 opt.AddModel("", edmModel, configureAction =>
                 {
-<<<<<<< Updated upstream
                     configureAction.AddService(Microsoft.OData.ServiceLifetime.Singleton, typeof(ODataBatchHandler), s => new EagleODataBatchHandler());
                     configureAction.AddService(Microsoft.OData.ServiceLifetime.Singleton, typeof(ODataSerializerProvider), sp => new EagleODataSerializerProvider(sp));
-=======
                     configureAction.AddService(Microsoft.OData.ServiceLifetime.Singleton, typeof(IEdmModel), s => edmModel);
                     configureAction.AddService(Microsoft.OData.ServiceLifetime.Singleton, typeof(ODataUriResolver), s => new AlternateKeyPrefixFreeEnumODataUriResolver(edmModel));
-                    configureAction.AddService(Microsoft.OData.ServiceLifetime.Singleton, typeof(ODataBatchHandler), s => new MyODataBatchHandler());
-                    configureAction.AddService(Microsoft.OData.ServiceLifetime.Singleton, typeof(ODataSerializerProvider), sp => new MyODataSerializerProvider(sp));
->>>>>>> Stashed changes
                 });
                 opt.Filter().Select().Expand().SetMaxTop(null).Count().OrderBy();
             });
@@ -54,17 +49,16 @@ namespace ODataCoreTest
             var odataBuilder = new ODataConventionModelBuilder();
             odataBuilder.EntitySet<Student>("Student");
             var entity = odataBuilder.EntityType<Student>();
-            entity.DerivesFrom<EntityBase>();
+            entity.DerivesFrom<CoolEntityBase>();
             entity.Ignore(s => s.Test);
             entity.Ignore(s => s.Test2);
             entity.HasKey(s => s.Id);
 
-<<<<<<< Updated upstream
+
             var baseEntity = odataBuilder.EntityType<EntityBase>();
             baseEntity.Abstract();
             baseEntity.Ignore(s => s.Test);
             baseEntity.Ignore(s => s.Test2);
-=======
             var cool = odataBuilder.EntityType<CoolEntityBase>();
             cool.Abstract();
             cool.Ignore(a => a.Test);
@@ -73,28 +67,6 @@ namespace ODataCoreTest
             student.DerivesFrom<CoolEntityBase>();
             student.Ignore(a => a.Test);
             cool.Ignore(s => s.Test2);
-
-            odataBuilder.EntityType<Student1>().HasKey(s => s.Id);
-            odataBuilder.EntityType<Student2>().HasKey(s => s.Id);
-            odataBuilder.EntityType<Student3>().HasKey(s => s.Id);
-            odataBuilder.EntityType<Student4>().HasKey(s => s.Id);
-            odataBuilder.EntityType<Student5>().HasKey(s => s.Id);
-            odataBuilder.EntityType<Student6>().HasKey(s => s.Id);
-            odataBuilder.EntityType<Student7>().HasKey(s => s.Id);
-            odataBuilder.EntityType<Student8>().HasKey(s => s.Id);
-            odataBuilder.EntityType<Student9>().HasKey(s => s.Id);
-            odataBuilder.EntityType<Student10>().HasKey(s => s.Id);
-            odataBuilder.EntityType<Student11>().HasKey(s => s.Id);
-            odataBuilder.EntityType<Student12>().HasKey(s => s.Id);
-            odataBuilder.EntityType<Student13>().HasKey(s => s.Id);
-            odataBuilder.EntityType<Student14>().HasKey(s => s.Id);
-            odataBuilder.EntityType<Student15>().HasKey(s => s.Id);
-            odataBuilder.EntityType<Student16>().HasKey(s => s.Id);
-            odataBuilder.EntityType<Student17>().HasKey(s => s.Id);
-            odataBuilder.EntityType<Student18>().HasKey(s => s.Id);
-            odataBuilder.EntityType<Student19>().HasKey(s => s.Id);
-            odataBuilder.EntityType<Student20>().HasKey(s => s.Id);
->>>>>>> Stashed changes
 
 
             var model = odataBuilder.GetEdmModel();
@@ -130,11 +102,7 @@ namespace ODataCoreTest
             builder.UseAuthorization();
             builder.UseMvc(routeBuilder =>
             {
-<<<<<<< Updated upstream
-                routeBuilder.MapControllerRoute("OData", "[controller]/[action]");
-=======
                 routeBuilder.MapRoute("OData", "[controller]/[action]");
->>>>>>> Stashed changes
             });
         }
     }

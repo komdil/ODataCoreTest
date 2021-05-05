@@ -22,12 +22,9 @@ namespace ODataCoreTest
             return list;
         }
 
-<<<<<<< Updated upstream
-        public IActionResult Get(Guid key)
-=======
+
         [HttpGet("{contextToken}/[controller]/{key}")]
         public IActionResult Get(string key)
->>>>>>> Stashed changes
         {
             var student = CreateNewStudentWithGuid("Cody Allen", 130);
             return Ok(student);
