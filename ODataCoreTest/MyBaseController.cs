@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.AspNetCore.OData.Routing.Controllers;
 using System;
@@ -7,6 +8,8 @@ using System.Threading;
 
 namespace ODataCoreTest
 {
+    [Authorize]
+    [EnableQuery(MaxExpansionDepth = 0, EnsureStableOrdering = false)]
     public class MyBaseController<TEntity> : ODataController, IDisposable where TEntity : class
     {
         public const string JsonContentType = "application/json";

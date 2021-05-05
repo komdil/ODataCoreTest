@@ -32,7 +32,7 @@ namespace ODataCoreTest
 
             mvcBuilder.AddOData(opt =>
             {
-                opt.AddModel("", edmModel, configureAction =>
+                opt.AddModel("{contextToken}", edmModel, configureAction =>
                 {
                     configureAction.AddService(Microsoft.OData.ServiceLifetime.Singleton, typeof(ODataBatchHandler), s => new MyODataBatchHandler());
                     configureAction.AddService(Microsoft.OData.ServiceLifetime.Singleton, typeof(ODataSerializerProvider), sp => new MyODataSerializerProvider(sp));
@@ -105,8 +105,7 @@ namespace ODataCoreTest
             builder.UseAuthorization();
             builder.UseEndpoints(routeBuilder =>
             {
-                routeBuilder.MapControllerRoute("OData", "[controller]/[action]");
-                routeBuilder.MapControllerRoute("ODataWithContext", "{contextToken}/[controller]/[action]");
+                routeBuilder.MapControllers();
             });
         }
     }
