@@ -11,7 +11,7 @@ namespace ODataCoreTest
     public abstract class MyBaseController<TEntity> : ODataController where TEntity : Student
     {
         [HttpGet("/{contextToken}/[controller]")]
-        public IEnumerable<Student> Get(ODataQueryOptions queryOptions, CancellationToken cancellationToken)
+        public IActionResult Get(ODataQueryOptions queryOptions, CancellationToken cancellationToken)
         {
             var list = new List<Student>
             {
@@ -19,7 +19,7 @@ namespace ODataCoreTest
                 CreateNewStudent("Todd Ostermeier", 160),
                 CreateNewStudent("Viral Pandya", 140)
             };
-            return list;
+            return Ok(list);
         }
 
 

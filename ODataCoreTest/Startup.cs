@@ -26,17 +26,17 @@ namespace ODataCoreTest
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            var edmModel = GetEdmModel();
             services.AddControllers(op => op.AllowEmptyInputInBodyModelBinding = true);
 
             var mvcBuilder = services.AddMvc(options => { options.EnableEndpointRouting = false; }).AddNewtonsoftJson(op => op.SerializerSettings.ContractResolver = new DefaultContractResolver());
-            var edmModel = GetEdmModel();
-
             mvcBuilder.AddOData(opt =>
             {
+                opt.EnableContinueOnErrorHeader = true;
                 opt.AddModel("", edmModel, configureAction =>
                 {
-                    configureAction.AddService(Microsoft.OData.ServiceLifetime.Singleton, typeof(ODataBatchHandler), s => new EagleODataBatchHandler());
-                    configureAction.AddService(Microsoft.OData.ServiceLifetime.Singleton, typeof(ODataSerializerProvider), sp => new EagleODataSerializerProvider(sp));
+                    configureAction.AddService(Microsoft.OData.ServiceLifetime.Singleton, typeof(ODataBatchHandler), s => new MyODataBatchHandler());
+                    configureAction.AddService(Microsoft.OData.ServiceLifetime.Singleton, typeof(ODataSerializerProvider), sp => new MyODataSerializerProvider(sp));
                     configureAction.AddService(Microsoft.OData.ServiceLifetime.Singleton, typeof(IEdmModel), s => edmModel);
                     configureAction.AddService(Microsoft.OData.ServiceLifetime.Singleton, typeof(ODataUriResolver), s => new AlternateKeyPrefixFreeEnumODataUriResolver(edmModel));
                 });
@@ -50,28 +50,22 @@ namespace ODataCoreTest
             odataBuilder.EntitySet<Student>("Student");
             var entity = odataBuilder.EntityType<Student>();
             entity.DerivesFrom<CoolEntityBase>();
-            entity.Ignore(s => s.Test);
-            entity.Ignore(s => s.Test2);
+
             entity.HasKey(s => s.Id);
 
 
             var baseEntity = odataBuilder.EntityType<EntityBase>();
             baseEntity.Abstract();
-            baseEntity.Ignore(s => s.Test);
-            baseEntity.Ignore(s => s.Test2);
+
             var cool = odataBuilder.EntityType<CoolEntityBase>();
             cool.Abstract();
-            cool.Ignore(a => a.Test);
-            cool.Ignore(s => s.Test2);
+
             var student = odataBuilder.EntityType<Student>().HasKey(s => s.Id);
             student.DerivesFrom<CoolEntityBase>();
-            student.Ignore(a => a.Test);
-            cool.Ignore(s => s.Test2);
 
 
             var model = odataBuilder.GetEdmModel();
             AddAlternateKey(model as EdmModel, "Student", "Name");
-
             return model;
         }
 

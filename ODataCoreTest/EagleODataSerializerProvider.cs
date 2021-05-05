@@ -9,9 +9,9 @@ namespace ODataCoreTest
     /// <summary>
     /// Provides custom serializers
     /// </summary>
-    public class EagleODataSerializerProvider : DefaultODataSerializerProvider
+    public class MyODataSerializerProvider : DefaultODataSerializerProvider
     {
-        public EagleODataSerializerProvider(IServiceProvider serviceProvider) : base(serviceProvider)
+        public MyODataSerializerProvider(IServiceProvider serviceProvider) : base(serviceProvider)
         {
 
         }

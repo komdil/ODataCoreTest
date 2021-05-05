@@ -12,7 +12,7 @@ namespace ODataCoreTest
     /// The requests will be executed in the order they arrive, that means that the client is responsible for
     /// correctly ordering the operations to satisfy referential constraints.
     /// </summary>
-    public class EagleODataBatchHandler : DefaultODataBatchHandler
+    public class MyODataBatchHandler : DefaultODataBatchHandler
     {
 
         /// <summary>
