@@ -10,7 +10,6 @@ using Microsoft.OData.Edm;
 using Microsoft.OData.ModelBuilder;
 using Microsoft.OData.UriParser;
 using Newtonsoft.Json.Serialization;
-using System.Collections.Generic;
 
 namespace ODataCoreTest
 {
@@ -26,19 +25,17 @@ namespace ODataCoreTest
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            var edmModel = GetEdmModel();
             services.AddControllers(op => op.AllowEmptyInputInBodyModelBinding = true);
 
             var mvcBuilder = services.AddMvc(options => { options.EnableEndpointRouting = false; }).AddNewtonsoftJson(op => op.SerializerSettings.ContractResolver = new DefaultContractResolver());
+            var edmModel = GetEdmModel();
+
             mvcBuilder.AddOData(opt =>
             {
-                opt.EnableContinueOnErrorHeader = true;
-                opt.AddModel("{contextToken}", edmModel, configureAction =>
+                opt.AddModel("", edmModel, configureAction =>
                 {
                     configureAction.AddService(Microsoft.OData.ServiceLifetime.Singleton, typeof(ODataBatchHandler), s => new MyODataBatchHandler());
                     configureAction.AddService(Microsoft.OData.ServiceLifetime.Singleton, typeof(ODataSerializerProvider), sp => new MyODataSerializerProvider(sp));
-                    configureAction.AddService(Microsoft.OData.ServiceLifetime.Singleton, typeof(IEdmModel), s => edmModel);
-                    configureAction.AddService(Microsoft.OData.ServiceLifetime.Singleton, typeof(ODataUriResolver), s => new AlternateKeyPrefixFreeEnumODataUriResolver(edmModel));
                 });
                 opt.Filter().Select().Expand().SetMaxTop(null).Count().OrderBy();
             });
@@ -48,38 +45,50 @@ namespace ODataCoreTest
         {
             var odataBuilder = new ODataConventionModelBuilder();
             odataBuilder.EntitySet<Student>("Student");
-            var entity = odataBuilder.EntityType<Student>();
-            entity.DerivesFrom<CoolEntityBase>();
+            odataBuilder.EntitySet<Student1>("Student1");
+            odataBuilder.EntitySet<Student2>("Student2");
+            odataBuilder.EntitySet<Student3>("Student3");
+            odataBuilder.EntitySet<Student4>("Student4");
+            odataBuilder.EntitySet<Student5>("Student5");
+            odataBuilder.EntitySet<Student6>("Student6");
+            odataBuilder.EntitySet<Student7>("Student7");
+            odataBuilder.EntitySet<Student8>("Student8");
+            odataBuilder.EntitySet<Student9>("Student9");
+            odataBuilder.EntitySet<Student10>("Student10");
+            odataBuilder.EntitySet<Student11>("Student11");
+            odataBuilder.EntitySet<Student12>("Student12");
+            odataBuilder.EntitySet<Student13>("Student13");
+            odataBuilder.EntitySet<Student14>("Student14");
+            odataBuilder.EntitySet<Student15>("Student15");
+            odataBuilder.EntitySet<Student16>("Student16");
+            odataBuilder.EntitySet<Student17>("Student17");
+            odataBuilder.EntitySet<Student18>("Student18");
+            odataBuilder.EntitySet<Student19>("Student19");
+            odataBuilder.EntitySet<Student20>("Student20");
 
-            entity.HasKey(s => s.Id);
+            odataBuilder.EntityType<Student>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student1>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student2>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student3>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student4>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student5>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student6>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student7>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student8>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student9>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student10>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student11>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student12>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student13>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student14>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student15>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student16>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student17>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student18>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student19>().HasKey(s => s.Id);
+            odataBuilder.EntityType<Student20>().HasKey(s => s.Id);
 
-
-            var baseEntity = odataBuilder.EntityType<EntityBase>();
-            baseEntity.Abstract();
-
-            var cool = odataBuilder.EntityType<CoolEntityBase>();
-            cool.Abstract();
-
-            var student = odataBuilder.EntityType<Student>().HasKey(s => s.Id);
-            student.DerivesFrom<CoolEntityBase>();
-
-
-            var model = odataBuilder.GetEdmModel();
-            AddAlternateKey(model as EdmModel, "Student", "Name");
-            return model;
-        }
-
-        /// <summary>
-        /// Adding alternate key, so that we are able to get entities by NaturalKey: ~OData/[EntityType](NaturalKey='CokeOrAnythingElse')
-        /// </summary>
-        static void AddAlternateKey(EdmModel edmModel, string entityName, string propertyName)
-        {
-            var edmEntityType = edmModel.FindDeclaredEntitySet(entityName).EntityType();
-            var naturalKeyProperty = edmEntityType.FindProperty(propertyName);
-            edmModel.AddAlternateKeyAnnotation(edmEntityType, new Dictionary<string, IEdmProperty> {
-            {
-                propertyName, naturalKeyProperty
-            }});
+            return odataBuilder.GetEdmModel();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -89,7 +98,6 @@ namespace ODataCoreTest
             {
                 builder.UseDeveloperExceptionPage();
             }
-            builder.UseODataRouteDebug();
             builder.UseODataBatching();
             builder.UseHttpsRedirection();
             builder.UseRouting();
@@ -98,6 +106,7 @@ namespace ODataCoreTest
             builder.UseEndpoints(routeBuilder =>
             {
                 routeBuilder.MapControllerRoute("OData", "[controller]/[action]");
+                routeBuilder.MapControllerRoute("ODataWithContext", "{contextToken}/[controller]/[action]");
             });
         }
     }
