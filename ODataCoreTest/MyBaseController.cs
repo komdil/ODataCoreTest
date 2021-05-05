@@ -7,67 +7,145 @@ using System.Threading;
 
 namespace ODataCoreTest
 {
-    [EnableQuery(MaxExpansionDepth = 0, EnsureStableOrdering = false)]
-    public abstract class MyBaseController<TEntity> : ODataController where TEntity : Student
+    public class MyBaseController<TEntity> : ODataController, IDisposable where TEntity : class
     {
-        [HttpGet("[controller]")]
-        public IActionResult Get(ODataQueryOptions<TEntity> queryOptions, CancellationToken cancellationToken)
-        {
-            var list = new List<Student>
-            {
-                CreateNewStudent("Cody Allen", 130),
-                CreateNewStudent("Todd Ostermeier", 160),
-                CreateNewStudent("Viral Pandya", 140)
-            };
-            return Ok(list);
-        }
+        public const string JsonContentType = "application/json";
 
+        #region CRUD
+
+        #region Get
+
+        /// <summary>
+        /// Gets single entity
+        /// </summary>
+        /// <returns>A queryable collection of entities.</returns>
         [HttpGet("[controller]/{key}")]
         public IActionResult Get(string key)
         {
-            var student = CreateNewStudentWithGuid("Cody Allen", 130);
-            return Ok(student);
+            return Ok();
         }
 
-
-        private static Student CreateNewStudent(string name, int score)
+        /// <summary>
+        /// Gets a collection of entities.
+        /// </summary>
+        /// <returns>A queryable collection of entities.</returns>
+        public IActionResult Get(ODataQueryOptions<TEntity> queryOptions, CancellationToken cancellationToken)
         {
-            return new Student
-            {
-                Id = Guid.NewGuid(),
-                Name = name,
-                Score = score
-            };
+            return Ok();
         }
 
-        private static Student CreateNewStudentWithGuid(string name, int score)
+
+
+        #endregion
+
+        #region Post
+
+        /// <summary>
+        /// Creates entities and saves to database
+        /// </summary>
+        /// <param name="entity">Entity to save to database</param>
+        /// <returns>Result of creating entity, if saved successfully, returning list of saved, otherwise returning messages</returns>
+        public IActionResult Post([FromBody] object jsonContent)
         {
-            return new Student
-            {
-                Id = new Guid("9DCC39C7-754C-4002-8627-BD719AA13E73"),
-                Name = name,
-                Score = score
-            };
+            return Ok();
         }
 
+
+
+        #endregion
+
+        #region Put
+
+        /// <summary>
+        /// Replacing entity by Guid
+        /// </summary>
+        [HttpPut("[controller]/{key}")]
+        public IActionResult Put([FromRoute] string key, [FromBody] object jsonContent)
+        {
+            return Ok();
+        }
+
+
+
+        #endregion
+
+        #region Patch
+
+        /// <summary>
+        /// Updating entity by Guid
+        /// </summary>
         [AcceptVerbs("PATCH", "MERGE")]
-        public IActionResult Patch()
+        [HttpPatch("[controller]/{key}")]
+        public IActionResult Patch([FromRoute] string key, [FromBody] object jsonContent)
         {
-            return Ok(CreateNewStudent("Hello", 12));
+            return Ok();
         }
 
-        [HttpDelete("[controller]({propName}={propValue})")]
-        [HttpDelete("[controller]({key})")]
+
+
+        #endregion
+
+        #region Delete
+
+        /// <summary>
+        /// Deleting entity based on Guid
+        /// </summary>
+        /// <param name="key">Guid of entity that should be deleted</param>
         [HttpDelete("[controller]/{key}")]
-        public IActionResult Delete(Guid key, string propName, string propValue)
+        public IActionResult Delete(string key)
         {
-            return Ok($"Orders {key} from OData");
+            return Ok();
         }
 
+
+
+
+        #endregion
+
+
+
+        #endregion
+
+        #region Error handling
+
+
+
+
+        #endregion
+
+        #region Commands
+
+        /// <summary>
+        /// Execute a specific command via an HttpPost call
+        /// </summary>
         [HttpPost("[controller]/{key}/Model.Entities.{commandName}")]
+        [HttpPost("[controller]({key})/Model.Entities.{commandName}")]
         public IActionResult ExecuteCommand(string commandName, string key, [FromBody] object parameters)
         {
             return Ok();
         }
+
+
+
+        #endregion
+
+        #region Batch
+
+
+        #endregion
+
+        #region Dispose
+
+        /// <summary>
+        /// Releases the unmanaged resources that are used by the object and, optionally, releases the managed resources.
+        /// </summary>
+        /// <param name="disposing">
+        /// True to release both managed and unmanaged resources; false to release only unmanaged resources.
+        /// </param>
+        public void Dispose()
+        {
+
+        }
+        #endregion
     }
 }
