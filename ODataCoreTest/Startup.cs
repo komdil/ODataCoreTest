@@ -9,6 +9,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.OData.Edm;
 using Microsoft.OData.ModelBuilder;
 using Microsoft.OData.UriParser;
+using Newtonsoft.Json.Serialization;
 
 namespace ODataCoreTest
 {
@@ -26,14 +27,13 @@ namespace ODataCoreTest
         {
             services.AddControllers(op => op.AllowEmptyInputInBodyModelBinding = true);
 
-            var mvcBuilder = services.AddMvcCore();
+            var mvcBuilder = services.AddMvc(options => { options.EnableEndpointRouting = false; }).AddNewtonsoftJson(op => op.SerializerSettings.ContractResolver = new DefaultContractResolver());
             var edmModel = GetEdmModel();
 
             mvcBuilder.AddOData(opt =>
             {
                 opt.AddModel("", edmModel, configureAction =>
                 {
-                    configureAction.AddService(Microsoft.OData.ServiceLifetime.Singleton, typeof(ODataUriResolver), s => new AlternateKeyPrefixFreeEnumODataUriResolver(edmModel));
                     configureAction.AddService(Microsoft.OData.ServiceLifetime.Singleton, typeof(ODataBatchHandler), s => new EagleODataBatchHandler());
                     configureAction.AddService(Microsoft.OData.ServiceLifetime.Singleton, typeof(ODataSerializerProvider), sp => new EagleODataSerializerProvider(sp));
                 });
@@ -60,17 +60,21 @@ namespace ODataCoreTest
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder builder, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
+                builder.UseDeveloperExceptionPage();
             }
-            app.UseHttpsRedirection();
-            app.UseRouting();
-            app.UseAuthorization();
-            app.UseODataBatching();
-            app.UseEndpoints(s => s.MapControllerRoute("OData", "[controller]/[action]"));
+            builder.UseODataBatching();
+            builder.UseHttpsRedirection();
+            builder.UseRouting();
+            builder.UseAuthentication();
+            builder.UseAuthorization();
+            builder.UseEndpoints(routeBuilder =>
+            {
+                routeBuilder.MapControllerRoute("OData", "[controller]/[action]");
+            });
         }
     }
 }

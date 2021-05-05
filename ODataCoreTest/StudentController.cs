@@ -12,22 +12,6 @@ namespace ODataCoreTest
 {
     public class StudentController : MyBaseController<Student>
     {
-        [HttpDelete("Student/{key}")]
-        public IActionResult Delete(string key)
-        {
-            return Ok($"Orders {key} from OData");
-        }
-
-        [HttpGet("Student/{key}")]
-        public IActionResult Get2(string key)
-        {
-            return Ok($"Orders {key} from OData");
-        }
-
-        [HttpGet("Student({propName}={propValue})")]
-        public IActionResult Get(string propName, string propValue)
-        {
-            return Ok($"Orders {propName} from OData" + propValue);
-        }
+   
     }
 }
