@@ -28,7 +28,7 @@ namespace ODataCoreTest
         {
             if (ModelState.IsValid)
             {
-                return Ok(new Student() { Id = new Guid("9DCC39C7-754C-4002-8627-BD719AA13E73"), Name = "Test", Score = 123 });
+                return Ok(new Student0() { Id = new Guid("9DCC39C7-754C-4002-8627-BD719AA13E73"), Name = "Test", Score = 123 });
             }
             return Ok();
         }
@@ -41,8 +41,6 @@ namespace ODataCoreTest
         {
             return Ok();
         }
-
-
 
         #endregion
 
