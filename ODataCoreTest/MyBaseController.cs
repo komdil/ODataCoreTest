@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Extensions;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.AspNetCore.OData.Routing.Attributes;
 using Microsoft.AspNetCore.OData.Routing.Controllers;
@@ -8,10 +9,9 @@ using System.Threading;
 
 namespace ODataCoreTest
 {
-    [EnableQuery(MaxExpansionDepth = 0, EnsureStableOrdering = false)]
+
     public abstract class MyBaseController<TEntity> : ODataController where TEntity : Student
     {
-        [HttpGet("/{contextToken}/[controller]")]
         public IEnumerable<Student> Get(ODataQueryOptions queryOptions, CancellationToken cancellationToken)
         {
             var list = new List<Student>
@@ -23,12 +23,12 @@ namespace ODataCoreTest
             return list;
         }
 
-        public IActionResult Get(Guid key)
+        [EnableQuery]
+        public IActionResult Get(string key)
         {
             var student = CreateNewStudentWithGuid("Cody Allen", 130);
             return Ok(student);
         }
-
 
         private static Student CreateNewStudent(string name, int score)
         {
@@ -40,7 +40,7 @@ namespace ODataCoreTest
             };
         }
 
-        private static Student CreateNewStudentWithGuid(string name, int score)
+        protected static Student CreateNewStudentWithGuid(string name, int score)
         {
             return new Student
             {
@@ -50,18 +50,18 @@ namespace ODataCoreTest
             };
         }
 
-        [AcceptVerbs("PATCH", "MERGE")]
-        public IActionResult Patch()
-        {
-            return Ok(CreateNewStudent("Hello", 12));
-        }
+        //[AcceptVerbs("PATCH", "MERGE")]
+        //public IActionResult Patch()
+        //{
+        //    return Ok(CreateNewStudent("Hello", 12));
+        //}
 
-        [HttpDelete("[controller]({propName}={propValue})")]
-        [HttpDelete("[controller]({key})")]
-        [HttpDelete("[controller]/{key}")]
-        public IActionResult Delete(Guid key, string propName, string propValue)
-        {
-            return Ok($"Orders {key} from OData");
-        }
+        //[HttpDelete("[controller]({propName}={propValue})")]
+        //[HttpDelete("[controller]({key})")]
+        //[HttpDelete("[controller]/{key}")]
+        //public IActionResult Delete(Guid key, string propName, string propValue)
+        //{
+        //    return Ok($"Orders {key} from OData");
+        //}
     }
 }

@@ -12,6 +12,7 @@ namespace ODataCoreTest
 {
     public class StudentController : MyBaseController<Student>
     {
-   
+     
+
     }
 }

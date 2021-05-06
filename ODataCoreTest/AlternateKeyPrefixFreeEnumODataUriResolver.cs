@@ -50,31 +50,6 @@ namespace ODataCoreTest
             return AlternateKeys.ResolveKeys(type, namedValues, convertFunc);
         }
 
-        public override IEdmNavigationSource ResolveNavigationSource(IEdmModel model, string identifier)
-        {
-            return base.ResolveNavigationSource(model, identifier);
-        }
-
-        public override IEnumerable<IEdmOperationImport> ResolveOperationImports(IEdmModel model, string identifier)
-        {
-            return base.ResolveOperationImports(model, identifier);
-        }
-
-        public override IEdmProperty ResolveProperty(IEdmStructuredType type, string propertyName)
-        {
-            return base.ResolveProperty(type, propertyName);
-        }
-
-        public override IEdmTerm ResolveTerm(IEdmModel model, string termName)
-        {
-            return base.ResolveTerm(model, termName);
-        }
-
-        public override IEdmSchemaType ResolveType(IEdmModel model, string typeName)
-        {
-            return base.ResolveType(model, typeName);
-        }
-
         public override IEnumerable<KeyValuePair<string, object>> ResolveKeys(IEdmEntityType type,
             IList<string> positionalValues, Func<IEdmTypeReference, string, object> convertFunc)
         {
