@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.OData;
@@ -27,6 +28,9 @@ namespace ODataCoreTest
         {
             services.AddControllers(op => op.AllowEmptyInputInBodyModelBinding = true);
 
+            services.AddAuthentication("EagleODataAuthentication").AddScheme<AuthenticationSchemeOptions, EagleODataAuthenticationHandler>("EagleODataAuthentication", null);
+            services.AddScoped<EagleODataAuthenticationService>();
+
             var mvcBuilder = services.AddMvc(options => { options.EnableEndpointRouting = false; }).AddNewtonsoftJson(op => op.SerializerSettings.ContractResolver = new DefaultContractResolver());
             var edmModel = GetEdmModel();
 
@@ -41,9 +45,9 @@ namespace ODataCoreTest
             });
         }
 
-        static IEdmModel GetEdmModel()
+        public static IEdmModel GetEdmModel()
         {
-            var odataBuilder = new ODataConventionModelBuilder();
+            var odataBuilder = new ODataConventionModelBuilder() { Namespace = "Model.Entities", ContainerName = "DefaultContainer" };
             odataBuilder.EntitySet<Student>("Student");
             odataBuilder.EntitySet<Student1>("Student1");
             odataBuilder.EntitySet<Student2>("Student2");
@@ -66,7 +70,8 @@ namespace ODataCoreTest
             odataBuilder.EntitySet<Student19>("Student19");
             odataBuilder.EntitySet<Student20>("Student20");
 
-            odataBuilder.EntityType<Student>().HasKey(s => s.Id);
+            var student = odataBuilder.EntityType<Student>().HasKey(s => s.Id);
+            student.Property(s => s.Name);
             odataBuilder.EntityType<Student1>().HasKey(s => s.Id);
             odataBuilder.EntityType<Student2>().HasKey(s => s.Id);
             odataBuilder.EntityType<Student3>().HasKey(s => s.Id);

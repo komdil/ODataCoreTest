@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Extensions;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.AspNetCore.OData.Routing.Controllers;
 using System;
@@ -25,6 +26,10 @@ namespace ODataCoreTest
         [HttpGet("[controller]/{key}")]
         public IActionResult Get(string key)
         {
+            if (ModelState.IsValid)
+            {
+                return Ok(new Student() { Id = new Guid("9DCC39C7-754C-4002-8627-BD719AA13E73"), Name = "Test", Score = 123 });
+            }
             return Ok();
         }
 
