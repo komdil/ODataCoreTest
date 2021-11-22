@@ -1,13 +1,15 @@
+using Microsoft.AspNet.OData.Builder;
 using Microsoft.AspNet.OData.Extensions;
+using Microsoft.AspNet.OData.Routing;
+using Microsoft.AspNet.OData.Routing.Conventions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.OData;
 using Microsoft.OData.Edm;
-using Microsoft.OData.UriParser;
-using System.Reflection;
+using System.Collections.Generic;
 
 namespace ODataCoreTest
 {
@@ -23,12 +25,9 @@ namespace ODataCoreTest
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            var modelAssembly = Assembly.LoadFrom(@"C:\Users\Owner\source\repos\ODataCoreTest\ClassLibrary2\bin\Debug\netcoreapp3.1\ClassLibrary2.dll");
-            services.AddControllers(mvcOptions =>
-                 mvcOptions.EnableEndpointRouting = false).PartManager.ApplicationParts.Add(new AssemblyPart(modelAssembly));
+            services.AddControllers(mvcOptions => mvcOptions.EnableEndpointRouting = false);
             services.AddOData();
             services.AddRouting();
-
             services.AddMvc();
         }
 
@@ -39,10 +38,48 @@ namespace ODataCoreTest
             {
                 app.UseDeveloperExceptionPage();
             }
-            //app.UseEndpoints(endpoints =>
-            //{
-            //    endpoints.MapControllers().Add(a=>a.;
-            //});
+            var builder = new ODataConventionModelBuilder(app.ApplicationServices) { Namespace = "Model.Entities", ContainerName = "DefaultContainer" };
+            app.UseHttpsRedirection();
+            app.UseRouting();
+            app.UseAuthorization();
+            app.UseODataBatching();
+            var edmModel = GetEdmModel();
+            app.UseDeveloperExceptionPage();
+            app.UseMvc(routeBuilder =>
+            {
+                routeBuilder.EnableDependencyInjection();
+                routeBuilder.Select().Filter().Expand();
+                routeBuilder.MapODataServiceRoute("OData", "odata", b =>
+                {
+                    b.AddService(Microsoft.OData.ServiceLifetime.Singleton, sp => edmModel);
+                    var conventions = ODataRoutingConventions.CreateDefault();
+                    //Workaround for https://github.com/OData/WebApi/issues/1622
+                    conventions.Insert(0, new AttributeRoutingConvention("OData", app.ApplicationServices, new DefaultODataPathHandler()));
+                    //Custom Convention
+                    b.AddService<IEnumerable<IODataRoutingConvention>>(Microsoft.OData.ServiceLifetime.Singleton, a => conventions);
+                });
+            });
+        }
+
+        static IEdmModel GetEdmModel()
+        {
+            var odataBuilder = new ODataConventionModelBuilder();
+
+            var student = odataBuilder.EntityType<Student>();
+            student.HasKey(s => s.Id);
+            student.Ignore(s => s.accessBackpacks);
+            student.Ignore(s => s.accessName);
+            student.Ignore(s => s.accessScore);
+            odataBuilder.EntitySet<Student>("Student");
+
+
+            var backpack = odataBuilder.EntityType<Backpack>();
+            backpack.HasKey(s => s.Id);
+            backpack.Ignore(s => s.accessName);
+            backpack.Ignore(s => s.accessStudent);
+
+            odataBuilder.EntitySet<Student>("Backpack");
+            return odataBuilder.GetEdmModel();
         }
     }
 }

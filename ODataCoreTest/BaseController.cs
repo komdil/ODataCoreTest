@@ -1,58 +1,27 @@
 ﻿using Microsoft.AspNet.OData;
 using Microsoft.AspNet.OData.Query;
 using Microsoft.AspNetCore.Mvc;
-using System;
+using Microsoft.OData.UriParser;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 
 namespace ODataCoreTest
 {
     public class BaseController<TEntity> : ODataController where TEntity : class
     {
+        AppDbContext AppDbContext = new AppDbContext();
+
+        public BaseController()
+        {
+            AppDbContext.InitDataBase();
+        }
+
         [HttpGet]
         [EnableQuery()]
-        public IActionResult Get(ODataQueryOptions<TEntity> queryOptions, CancellationToken cancellationToken)
+        public IEnumerable<TEntity> Get()
         {
-            var list = new List<Student>
-            {
-                CreateNewStudent("Cody Allen", 130),
-                CreateNewStudent("Todd Ostermeier", 160),
-                CreateNewStudent("Viral Pandya", 140)
-            };
-            return Ok(list);
-        }
-
-        private static Student CreateNewStudent(string name, int score)
-        {
-            return new Student
-            {
-                Id = Guid.NewGuid(),
-                Name = name,
-                Score = score
-            };
-        }
-
-        protected IActionResult Get(string propertyName, string key)
-        {
-            var list = new List<Student>
-            {
-                CreateNewStudent("Cody Allen", 130),
-                CreateNewStudent("Todd Ostermeier", 160),
-                CreateNewStudent("Viral Pandya", 140)
-            };
-            return Ok(list);
-        }
-
-        public virtual IActionResult Get(string key) => GetEntity(key);
-
-        IActionResult GetEntity(string key)
-        {
-            var list = new List<Student>
-            {
-                CreateNewStudent("Todd Ostermeier", 160),
-                CreateNewStudent("Viral Pandya", 140)
-            };
-            return Ok(list);
+            return AppDbContext.GetEntities<TEntity>();
         }
     }
 }

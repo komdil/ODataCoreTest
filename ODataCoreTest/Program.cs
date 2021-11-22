@@ -11,10 +11,9 @@ namespace ODataCoreTest
         public static void Main(string[] args)
         {
             var url = "https://localhost:44383";
-            var actionBuilder = Configuration.GetBuilder();
-            StartHost(url, actionBuilder);
+            StartHost(url);
         }
-        internal static IHost StartHost(string url, Action<IApplicationBuilder> action)
+        internal static IHost StartHost(string url)
         {
             var host = Host.CreateDefaultBuilder().ConfigureWebHostDefaults(webBuilder =>
             {
@@ -22,7 +21,6 @@ namespace ODataCoreTest
                 webBuilder.UseIISIntegration();
                 webBuilder.UseStartup<Startup>();
                 webBuilder.UseHttpSys(op => op.UrlPrefixes.Add(url));
-                webBuilder.Configure(action);
             }).Build();
             host.Start();
             return host;
