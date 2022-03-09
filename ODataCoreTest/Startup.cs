@@ -38,7 +38,7 @@ namespace ODataCoreTest
             {
                 app.UseDeveloperExceptionPage();
             }
-            var builder = new ODataConventionModelBuilder(app.ApplicationServices) { Namespace = "Model.Entities", ContainerName = "DefaultContainer" };
+            var builder = new ODataConventionModelBuilder(app.ApplicationServices) { ContainerName = "DefaultContainer" };
             app.UseHttpsRedirection();
             app.UseRouting();
             app.UseAuthorization();
@@ -67,18 +67,8 @@ namespace ODataCoreTest
 
             var student = odataBuilder.EntityType<Student>();
             student.HasKey(s => s.Id);
-            student.Ignore(s => s.accessBackpacks);
-            student.Ignore(s => s.accessName);
-            student.Ignore(s => s.accessScore);
             odataBuilder.EntitySet<Student>("Student");
 
-
-            var backpack = odataBuilder.EntityType<Backpack>();
-            backpack.HasKey(s => s.Id);
-            backpack.Ignore(s => s.accessName);
-            backpack.Ignore(s => s.accessStudent);
-
-            odataBuilder.EntitySet<Student>("Backpack");
             return odataBuilder.GetEdmModel();
         }
     }
