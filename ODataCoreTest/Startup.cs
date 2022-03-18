@@ -1,5 +1,6 @@
 using Microsoft.AspNet.OData.Builder;
 using Microsoft.AspNet.OData.Extensions;
+using Microsoft.AspNet.OData.Formatter.Serialization;
 using Microsoft.AspNet.OData.Routing;
 using Microsoft.AspNet.OData.Routing.Conventions;
 using Microsoft.AspNetCore.Builder;
@@ -57,6 +58,7 @@ namespace ODataCoreTest
                     conventions.Insert(0, new AttributeRoutingConvention("OData", app.ApplicationServices, new DefaultODataPathHandler()));
                     //Custom Convention
                     b.AddService<IEnumerable<IODataRoutingConvention>>(Microsoft.OData.ServiceLifetime.Singleton, a => conventions);
+                    b.AddService(Microsoft.OData.ServiceLifetime.Singleton, typeof(ODataSerializerProvider), sp => new MyODataSerializerProvider(sp));
                 });
             });
         }
@@ -65,10 +67,9 @@ namespace ODataCoreTest
         {
             var odataBuilder = new ODataConventionModelBuilder();
 
-            var student = odataBuilder.EntityType<Student>();
-            student.HasKey(s => s.Id);
-            odataBuilder.EntitySet<Student>("Student");
-
+            var student = odataBuilder.EntityType<Blog>();
+            student.HasKey(s => s.Code);
+            odataBuilder.EntitySet<Blog>("Blog");
             return odataBuilder.GetEdmModel();
         }
     }

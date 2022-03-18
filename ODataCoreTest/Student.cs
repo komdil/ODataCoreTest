@@ -3,10 +3,10 @@ using System.Collections.Generic;
 
 namespace ODataCoreTest
 {
-    public class Student
+    public class Blog
     {
-        public Guid Id { get; set; }
-
+        public string Code { get; set; }
         public string Name { get; set; }
+        public byte[] Image { get; set; }
     }
 }
