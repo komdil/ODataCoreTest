@@ -19,9 +19,16 @@ namespace ODataCoreTest
 
         [HttpGet]
         [EnableQuery()]
-        public IEnumerable<TEntity> Get()
+        public IActionResult Get(ODataQueryOptions<TEntity> oDataQueryOptions)
         {
-            return AppDbContext.GetEntities<TEntity>();
+            var result = oDataQueryOptions.ApplyTo(AppDbContext.GetEntities<TEntity>());
+
+            List<TEntity> entities = new List<TEntity>();
+            foreach (var item in result)
+            {
+                entities.Add((TEntity)item);
+            }
+            return Ok(entities);
         }
     }
 }
