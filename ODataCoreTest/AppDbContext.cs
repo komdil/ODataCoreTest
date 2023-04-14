@@ -8,7 +8,7 @@ namespace ODataCoreTest
     {
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer("data source=DILSHODKPC;integrated security=True;Database=ODataTEst; MultipleActiveResultSets=true");
+            optionsBuilder.UseSqlServer("data source=localhost;integrated security=True;Database=ODataTEst2; MultipleActiveResultSets=true");
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -21,7 +21,7 @@ namespace ODataCoreTest
         {
             if (Database.EnsureCreated())
             {
-                for (int i = 0; i < 20; i++)
+                for (int i = 0; i < 100000; i++)
                 {
                     var student = new Student()
                     {
