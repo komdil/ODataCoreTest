@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
-using System.Linq;
 
 namespace ODataCoreTest
 {
@@ -15,6 +14,10 @@ namespace ODataCoreTest
         {
             var student = modelBuilder.Entity<Student>();
             student.HasKey(s => s.Id);
+            student.HasOne(s => s.Address);
+
+            var address = modelBuilder.Entity<Address>();
+            address.HasKey(s => s.Id);
         }
 
         public void InitDataBase()
@@ -32,11 +35,6 @@ namespace ODataCoreTest
                 }
                 SaveChanges();
             }
-        }
-
-        public IQueryable<T> GetEntities<T>() where T : class
-        {
-            return Set<T>();
         }
     }
 }

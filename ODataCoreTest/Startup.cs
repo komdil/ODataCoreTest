@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OData;
 using Microsoft.OData.Edm;
+using ODataCoreTest.Repositories;
 using System.Collections.Generic;
 
 namespace ODataCoreTest
@@ -28,12 +29,17 @@ namespace ODataCoreTest
             services.AddControllers(mvcOptions => mvcOptions.EnableEndpointRouting = false);
             services.AddOData();
             services.AddRouting();
+            services.AddDbContext<AppDbContext>();
+            services.AddScoped<IStudentRepository, Studentrepository>();
+
+
             services.AddMvc();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, AppDbContext appDbContext)
         {
+            appDbContext.InitDataBase();
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
