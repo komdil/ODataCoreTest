@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 
 namespace ODataCoreTest
 {
@@ -8,5 +7,18 @@ namespace ODataCoreTest
         public Guid Id { get; set; }
 
         public string Name { get; set; }
+
+        public Address Address { get; set; }
+    }
+
+    public class Address
+    {
+        public Guid Id { get; set; }
+
+        public string Street { get; set; }
+
+        public string Country { get; set; }
+
+        public string City { get; set; }
     }
 }

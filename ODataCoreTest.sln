@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30225.117
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33815.320
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ODataCoreTest", "ODataCoreTest\ODataCoreTest.csproj", "{ED898D26-CC4C-460F-95E3-5BAFD2E93897}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EFTest", "EFTest\EFTest.csproj", "{887533DF-9E15-4701-8184-BCCD438C0359}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{ED898D26-CC4C-460F-95E3-5BAFD2E93897}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ED898D26-CC4C-460F-95E3-5BAFD2E93897}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ED898D26-CC4C-460F-95E3-5BAFD2E93897}.Release|Any CPU.Build.0 = Release|Any CPU
+		{887533DF-9E15-4701-8184-BCCD438C0359}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{887533DF-9E15-4701-8184-BCCD438C0359}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{887533DF-9E15-4701-8184-BCCD438C0359}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{887533DF-9E15-4701-8184-BCCD438C0359}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

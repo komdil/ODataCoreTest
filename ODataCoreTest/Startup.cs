@@ -4,6 +4,7 @@ using Microsoft.AspNet.OData.Routing;
 using Microsoft.AspNet.OData.Routing.Conventions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -27,6 +28,7 @@ namespace ODataCoreTest
         {
             services.AddControllers(mvcOptions => mvcOptions.EnableEndpointRouting = false);
             services.AddOData();
+            services.AddDbContext<AppDbContext>(options => options.UseSqlServer("data source=localhost;integrated security=True;Database=ODataTEst2; MultipleActiveResultSets=true"));
             services.AddRouting();
             services.AddMvc();
         }
@@ -55,6 +57,7 @@ namespace ODataCoreTest
                     var conventions = ODataRoutingConventions.CreateDefault();
                     //Workaround for https://github.com/OData/WebApi/issues/1622
                     conventions.Insert(0, new AttributeRoutingConvention("OData", app.ApplicationServices, new DefaultODataPathHandler()));
+                    conventions.Insert(0, new MyRoutingConvention());
                     //Custom Convention
                     b.AddService<IEnumerable<IODataRoutingConvention>>(Microsoft.OData.ServiceLifetime.Singleton, a => conventions);
                 });
@@ -67,7 +70,13 @@ namespace ODataCoreTest
 
             var student = odataBuilder.EntityType<Student>();
             student.HasKey(s => s.Id);
+
+            student.Action("Run").ReturnsFromEntitySet<Student>("Student");
+
             odataBuilder.EntitySet<Student>("Student");
+
+            var address = odataBuilder.EntityType<Address>();
+            address.HasKey(s => s.Id);
 
             return odataBuilder.GetEdmModel();
         }

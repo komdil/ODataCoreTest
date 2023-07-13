@@ -6,15 +6,19 @@ namespace ODataCoreTest
 {
     public class AppDbContext : DbContext
     {
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        public AppDbContext(DbContextOptions options) : base(options)
         {
-            optionsBuilder.UseSqlServer("data source=localhost;integrated security=True;Database=ODataTEst2; MultipleActiveResultSets=true");
+
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             var student = modelBuilder.Entity<Student>();
             student.HasKey(s => s.Id);
+            student.HasOne(s => s.Address);
+
+            var address = modelBuilder.Entity<Address>();
+            address.HasKey(s => s.Id);
         }
 
         public void InitDataBase()
@@ -28,13 +32,22 @@ namespace ODataCoreTest
                         Id = Guid.NewGuid(),
                         Name = $"Name{i}",
                     };
+                    var address = new Address()
+                    {
+                        Id = Guid.NewGuid(),
+                        City = $"City{i}",
+                        Country = $"Country{i}",
+                        Street = $"Street{i}"
+                    };
+                    student.Address = address;
+
                     Add(student);
                 }
                 SaveChanges();
             }
         }
 
-        public IQueryable<T> GetEntities<T>() where T : class
+        public DbSet<T> GetEntities<T>() where T : class
         {
             return Set<T>();
         }
